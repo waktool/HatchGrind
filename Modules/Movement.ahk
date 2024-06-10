@@ -1,6 +1,4 @@
-﻿#Requires AutoHotkey v2.0
-
-#Requires AutoHotkey v2.0  ; Ensures the script runs only on AutoHotkey version 2.0, which supports the syntax and functions used in this script.
+﻿#Requires AutoHotkey v2.0  ; Ensures the script runs only on AutoHotkey version 2.0, which supports the syntax and functions used in this script.
 
 ; ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 ; MOVEMENT/PATHS CONFIGURATION FILE
@@ -15,107 +13,128 @@
 
 SHINY_HOVERBOARD_MODIFIER := (GetSetting("HasShinyHoverboard") = "true") ? 20 / 27 : 1 ; Calculate a modifier for shiny hoverboard use.
 
+; Movement settings.
+BEST_ZONE_TRAVEL_DIRECTION := GetSetting("BestZoneTravelDirection")
+BEST_ZONE_TRAVEL_TIME := GetSetting("BestZoneTravelTime")
+BEST_EGG_TRAVEL_DIRECTION := GetSetting("BestEggTravelDirection")
+BEST_EGG_TRAVEL_TIME := GetSetting("BestEggTravelTime")
+AWAY_FROM_BEST_EGG_DIRECTION := GetSetting("AwayFromEggsDirection")
+AWAY_FROM_BEST_EGG_TIME := GetSetting("AwayFromEggsTime")
+
+; ---------------------------------------------------------------------------------
+; DIRECTION Map
+; Description: Stores key mappings for different directions, including single keys for up, down, left, and right, as well as combinations of keys for diagonal movements.
+; Operation:
+;   - Defines a map named DIRECTION to store key mappings.
+;   - Sets default value to an empty string.
+;   - Maps single keys for basic directions: Up, Down, Left, and Right.
+;   - Maps combinations of keys for diagonal movements: Up-Right, Up-Left, Down-Right, and Down-Left.
+; Dependencies:
+;   - Map: AHK object to store key-value pairs.
+; Return: None; the map stores key mappings for various directions.
+; ---------------------------------------------------------------------------------
+DIRECTION := Map()
+DIRECTION.Default := ""  ; Set default value to an empty string.
+DIRECTION["Up"] := "W"  ; Map key for moving up.
+DIRECTION["Down"] := "S"  ; Map key for moving down.
+DIRECTION["Left"] := "A"  ; Map key for moving left.
+DIRECTION["Right"] := "D"  ; Map key for moving right.
+DIRECTION["UpRight"] := ["D", "W"]  ; Map keys for moving up-right.
+DIRECTION["UpLeft"] := ["A", "W"]  ; Map keys for moving up-left.
+DIRECTION["DownRight"] := ["D", "S"]  ; Map keys for moving down-right.
+DIRECTION["DownLeft"] := ["A", "S"]  ; Map keys for moving down-left.
+
 
 ; ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 ; MOVEMENT VARIABLES
 ; ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
-; ----------------------------------------------------------------------------------------
-; moveToBestEgg Function
-; Description: Moves the character to the location of the best egg.
-; ----------------------------------------------------------------------------------------
-moveToBestEgg() {
-    ; Modify the current status to indicate moving to the best egg.
-    setCurrentAction("Moving To Best Egg")
-    
-    clickHoverboard(true)
-
-    ; ========================================
-    ; Edit the following in need.
-    ; ========================================      
-    Sleep 500
-    moveLeft(1425 * SHINY_HOVERBOARD_MODIFIER)
-    Sleep 500
-    ; ========================================
-    
-    clickHoverboard(false)
-
-    ; Modify the current status back to default.
-    setCurrentAction("-")
-}
-
-moveAwayFromEggs() {
-    setCurrentAction("Moving away from eggs...")
-
-    ; ========================================
-    ; Edit the following in need.
-    ; ========================================  
-    MoveRight(2250)
-    ; ========================================
-
-    setCurrentAction("-") 
-}
-
-moveToBestEggFromBestArea() {
-    ; Modify the current status to indicate moving to the best egg.
-    setCurrentAction("Moving To Best Egg")
-    
-    clickHoverboard(true)
-
-    ; ========================================
-    ; Edit the following in need.
-    ; ========================================      
-    Sleep 500
-    moveLeft(700 * SHINY_HOVERBOARD_MODIFIER)
-    Sleep 500
-    ; ========================================
-    
-    clickHoverboard(false)
-
-    ; Modify the current status back to default.
-    setCurrentAction("-")    
-}
-
-moveToBestAreaFromBestEgg() {
-    ; Modify the current status to indicate moving to the best egg.
-    setCurrentAction("Moving To Best Area")
-    
-    clickHoverboard(true)
-
-    ; ========================================
-    ; Edit the following in need.
-    ; ========================================      
-    Sleep 500
-    moveRight(700 * SHINY_HOVERBOARD_MODIFIER)
-    Sleep 500
-    ; ========================================
-    
-    clickHoverboard(false)
-
-    ; Modify the current status back to default.
-    setCurrentAction("-")    
-}
-
-; ----------------------------------------------------------------------------------------
+; ---------------------------------------------------------------------------------
 ; moveToCentreOfTheBestZone Function
-; Description: Moves the character to the center of the best zone.
-; ----------------------------------------------------------------------------------------
+; Description: Moves the character to the center of the best zone by using the hoverboard and updating the current action.
+; Operation:
+;   - Sets the current action to "Moving To Zone Centre".
+;   - Activates the hoverboard.
+;   - Stabilizes the hoverboard by simulating key presses.
+;   - Moves in the specified direction for the calculated duration, factoring in the shiny hoverboard modifier.
+;   - Deactivates the hoverboard.
+;   - Resets the current action.
+; Dependencies:
+;   - setCurrentAction: Function to update the current action in the GUI.
+;   - clickHoverboard: Function to activate or deactivate the hoverboard.
+;   - stabiliseHoverboard: Function to stabilize the hoverboard.
+;   - moveDirection: Function to simulate movement by pressing and releasing a key.
+;   - DIRECTION: Map storing key mappings for different directions.
+;   - BEST_ZONE_TRAVEL_DIRECTION: Key representing the direction to travel to the center of the best zone.
+;   - BEST_ZONE_TRAVEL_TIME: Base duration in milliseconds to travel to the center of the best zone.
+;   - SHINY_HOVERBOARD_MODIFIER: Modifier to adjust the travel time based on hoverboard type.
+;   - Sleep: AHK command to pause execution for a specified duration.
+; Return: None; the function moves the character to the center of the best zone.
+; ---------------------------------------------------------------------------------
 moveToCentreOfTheBestZone() {
-    ; Modify the current status to indicate moving to the zone center.
-    setCurrentAction("Moving To Zone Centre")
-    
-    clickHoverboard(true)
+    setCurrentAction("Moving To Zone Centre")  ; Set the current action.
 
-    ; ========================================
-    ; Edit the following in need.
-    ; ========================================    
-    moveLeft(650 * SHINY_HOVERBOARD_MODIFIER)
-    ; ========================================
-    
-    clickHoverboard(false)
+    clickHoverboard(true)  ; Activate the hoverboard.
+    stabiliseHoverboard(DIRECTION[BEST_ZONE_TRAVEL_DIRECTION])  ; Stabilize the hoverboard.
+    moveDirection(DIRECTION[BEST_ZONE_TRAVEL_DIRECTION], BEST_ZONE_TRAVEL_TIME * SHINY_HOVERBOARD_MODIFIER)  ; Move in the specified direction for the calculated duration.
+    clickHoverboard(false)  ; Deactivate the hoverboard.
 
-    ; Modify the current status back to default.
-    setCurrentAction("-")
+    setCurrentAction("-")  ; Reset the current action.
+}
+
+
+; ---------------------------------------------------------------------------------
+; moveToBestEggFromBestArea Function
+; Description: Moves the character from the best area to the best egg by using the hoverboard and updating the current action.
+; Operation:
+;   - Sets the current action to "Moving To Best Egg".
+;   - Activates the hoverboard.
+;   - Stabilizes the hoverboard by simulating key presses.
+;   - Moves in the specified direction for the calculated duration, factoring in the shiny hoverboard modifier.
+;   - Deactivates the hoverboard.
+;   - Resets the current action.
+; Dependencies:
+;   - setCurrentAction: Function to update the current action in the GUI.
+;   - clickHoverboard: Function to activate or deactivate the hoverboard.
+;   - stabiliseHoverboard: Function to stabilize the hoverboard.
+;   - moveDirection: Function to simulate movement by pressing and releasing a key.
+;   - DIRECTION: Map storing key mappings for different directions.
+;   - BEST_EGG_TRAVEL_DIRECTION: Key representing the direction to travel to the best egg.
+;   - BEST_EGG_TRAVEL_TIME: Base duration in milliseconds to travel to the best egg.
+;   - SHINY_HOVERBOARD_MODIFIER: Modifier to adjust the travel time based on hoverboard type.
+;   - Sleep: AHK command to pause execution for a specified duration.
+; Return: None; the function moves the character from the best area to the best egg.
+; ---------------------------------------------------------------------------------
+moveToBestEggFromBestArea() {
+    setCurrentAction("Moving To Best Egg")  ; Set the current action.
+    clickHoverboard(true)  ; Activate the hoverboard.
+    stabiliseHoverboard(DIRECTION[BEST_EGG_TRAVEL_DIRECTION])  ; Stabilize the hoverboard.
+    moveDirection(DIRECTION[BEST_EGG_TRAVEL_DIRECTION], BEST_EGG_TRAVEL_TIME * SHINY_HOVERBOARD_MODIFIER)  ; Move in the specified direction for the calculated duration.
+    Sleep 500
+    clickHoverboard(false)  ; Deactivate the hoverboard.
+    setCurrentAction("-")  ; Reset the current action.
+}
+
+
+; ---------------------------------------------------------------------------------
+; moveAwayFromEggs Function
+; Description: Moves the character away from the eggs by calling the moveDirection function and updating the current action.
+; Operation:
+;   - Sets the current action to "Moving away from eggs...".
+;   - Calls the moveDirection function to move in the specified direction for a specified time.
+;   - Resets the current action.
+; Dependencies:
+;   - setCurrentAction: Function to update the current action in the GUI.
+;   - moveDirection: Function to simulate movement by pressing and releasing a key.
+;   - DIRECTION: Map storing key mappings for different directions.
+;   - AWAY_FROM_BEST_EGG_DIRECTION: Key representing the direction to move away from the best egg.
+;   - AWAY_FROM_BEST_EGG_TIME: Duration in milliseconds to move away from the best egg.
+; Return: None; the function moves the character away from the eggs and updates the current action.
+; ---------------------------------------------------------------------------------
+moveAwayFromEggs() {
+    setCurrentAction("Moving away from eggs...")  ; Set the current action.
+    moveDirection(DIRECTION[AWAY_FROM_BEST_EGG_DIRECTION], AWAY_FROM_BEST_EGG_TIME)  ; Move in the specified direction for the specified time.
+    setCurrentAction("-")  ; Reset the current action.
 }
 
 
@@ -123,122 +142,47 @@ moveToCentreOfTheBestZone() {
 ; MOVEMENT FUNCTIONS
 ; ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
-; ----------------------------------------------------------------------------------------
-; moveRight Function
-; Description: Simulates moving right by pressing and holding the 'd' key.
-; Parameters:
-;   - milliseconds: Duration to hold the 'd' key.
+; ---------------------------------------------------------------------------------
+; stabiliseHoverboard Function
+; Description: Simulates pressing a movement key three times with short intervals and then waits for 1000 milliseconds to stabilize the hoverboard.
 ; Operation:
-;   - Presses and holds the 'd' key, sleeps for specified milliseconds, then releases the key.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveRight(milliseconds) {
-    Send "{d down}"
-    Sleep milliseconds
-    Send "{d up}"
+;   - Loops three times to send a key down event, wait for a short interval, and send a key up event.
+;   - Waits for 1000 milliseconds after the loop to allow the hoverboard to stabilize.
+; Dependencies:
+;   - Send: AHK command to send key events.
+;   - Sleep: AHK command to pause execution for a specified duration.
+; Return: None; the function stabilizes the hoverboard by simulating key presses.
+; ---------------------------------------------------------------------------------
+stabiliseHoverboard(moveKey) {
+    Loop 3 {
+        moveDirection(moveKey, 10)
+    }
+    Sleep 1000  ; Wait for 1000 milliseconds to stabilize the hoverboard.
 }
 
-; ----------------------------------------------------------------------------------------
-; moveLeft Function
-; Description: Simulates moving left by pressing and holding the 'a' key.
-; Parameters:
-;   - milliseconds: Duration to hold the 'a' key.
+; ---------------------------------------------------------------------------------
+; moveDirection Function
+; Description: Simulates movement by sending a key down event, waiting for a specified time, and then sending a key up event.
 ; Operation:
-;   - Presses and holds the 'a' key, sleeps for specified milliseconds, then releases the key.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveLeft(milliseconds) {
-    Send "{a down}"
-    Sleep milliseconds
-    Send "{a up}"
-}
+;   - Sends a key down event for the specified movement key.
+;   - Waits for the specified duration in milliseconds.
+;   - Sends a key up event to stop the movement.
+; Dependencies:
+;   - Send: AHK command to send key events.
+;   - Sleep: AHK command to pause execution for a specified duration.
+; Return: None; the function simulates movement by pressing and releasing a key.
+; ---------------------------------------------------------------------------------
+moveDirection(moveKey, timeMs) {
+    if IsObject(moveKey)
+        Send "{" moveKey[1] " down}{" moveKey[2] " down}"
+    else
+        Send "{" moveKey " down}"  ; Send the key down event for the specified movement key.
 
-; ----------------------------------------------------------------------------------------
-; moveUp Function
-; Description: Simulates moving up by pressing and holding the 'w' key.
-; Parameters:
-;   - milliseconds: Duration to hold the 'w' key.
-; Operation:
-;   - Presses and holds the 'w' key, sleeps for specified milliseconds, then releases the key.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveUp(milliseconds) {
-    Send "{w down}"
-    Sleep milliseconds
-    Send "{w up}"
-}
+    Sleep timeMs  ; Wait for the specified duration in milliseconds.
 
-; ----------------------------------------------------------------------------------------
-; moveDown Function
-; Description: Simulates moving down by pressing and holding the 's' key.
-; Parameters:
-;   - milliseconds: Duration to hold the 's' key.
-; Operation:
-;   - Presses and holds the 's' key, sleeps for specified milliseconds, then releases the key.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveDown(milliseconds) {
-    Send "{s down}"
-    Sleep milliseconds
-    Send "{s up}"
-}
+    if IsObject(moveKey)
+        Send "{" moveKey[1] " up}{" moveKey[2] " up}"
+    else
+        Send "{" moveKey " up}"  ; Send the key down event for the specified movement key.    
 
-; ----------------------------------------------------------------------------------------
-; moveUpLeft Function
-; Description: Simulates moving diagonally up-left by pressing and holding the 'w' and 'a' keys.
-; Parameters:
-;   - milliseconds: Duration to hold the 'w' and 'a' keys.
-; Operation:
-;   - Presses and holds both the 'w' and 'a' keys, sleeps for specified milliseconds, then releases the keys.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveUpLeft(milliseconds) {
-    Send "{w down}{a down}"
-    Sleep milliseconds
-    Send "{w up}{a up}"
-}
-
-; ----------------------------------------------------------------------------------------
-; moveUpRight Function
-; Description: Simulates moving diagonally up-right by pressing and holding the 'w' and 'd' keys.
-; Parameters:
-;   - milliseconds: Duration to hold the 'w' and 'd' keys.
-; Operation:
-;   - Presses and holds both the 'w' and 'd' keys, sleeps for specified milliseconds, then releases the keys.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveUpRight(milliseconds) {
-    Send "{w down}{d down}"
-    Sleep milliseconds
-    Send "{w up}{d up}"
-}
-
-; ----------------------------------------------------------------------------------------
-; moveDownLeft Function
-; Description: Simulates moving diagonally down-left by pressing and holding the 's' and 'a' keys.
-; Parameters:
-;   - milliseconds: Duration to hold the 's' and 'a' keys.
-; Operation:
-;   - Presses and holds both the 's' and 'a' keys, sleeps for specified milliseconds, then releases the keys.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveDownLeft(milliseconds) {
-    Send "{s down}{a down}"
-    Sleep milliseconds
-    Send "{s up}{a up}"
-}
-
-; ----------------------------------------------------------------------------------------
-; moveDownRight Function
-; Description: Simulates moving diagonally down-right by pressing and holding the 's' and 'd' keys.
-; Parameters:
-;   - milliseconds: Duration to hold the 's' and 'd' keys.
-; Operation:
-;   - Presses and holds both the 's' and 'd' keys, sleeps for specified milliseconds, then releases the keys.
-; Return: None; directly interacts with keyboard inputs.
-; ----------------------------------------------------------------------------------------
-moveDownRight(milliseconds) {
-    Send "{s down}{d down}"
-    Sleep milliseconds
-    Send "{s up}{d up}"
 }
