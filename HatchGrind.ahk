@@ -21,13 +21,15 @@ SetMouseDelay 10
 ; ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 global MACRO_TITLE := "Hatch & Grind"
-global MACRO_VERSION := "0.9"
+global MACRO_VERSION := "0.9.1"
 global SETTINGS_INI := A_ScriptDir "\Settings.ini"
 global ONE_SECOND := 1000
-global FIRST_ZONE := 200
-global BEST_ZONE := 209
 global SHOW_OCR_OUTLINE := getSetting("ShowOcrOutline")
 global DARK_MODE := getSetting("DarkMode")
+
+; Zone settings.
+global FIRST_ZONE := 210
+global BEST_ZONE := 214
 
 
 ; ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
@@ -104,7 +106,6 @@ runMacro() {
     showMainGui()  ; Show the main GUI.
     activateRoblox()  ; Activate the Roblox window.
     applyAutoHatchSettings()  ; Apply auto hatch settings.
-
     Loop {
         checkForDisconnection()  ; Check for disconnection and reconnect if necessary.
         claimFreeGifts()  ; Claim free gifts if they are ready.
